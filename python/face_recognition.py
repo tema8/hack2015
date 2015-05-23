@@ -1,6 +1,7 @@
+import pdb
 import sys, os
 # import facerec modules
-from facerec.feature import Fisherfaces, SpatialHistogram, Identity
+from facerec.feature import Fisherfaces, SpatialHistogram, Identity, PCA, LDA
 from facerec.distance import EuclideanDistance, ChiSquareDistance
 from facerec.classifier import NearestNeighbor
 from facerec.model import PredictableModel
@@ -33,8 +34,15 @@ from dropcam import Dropcam
 
 #Takes picture, stores it and displays with the message
 def take_pic(cam):
-    cam.save_image("camera.0.jpg")
-    #frame = (misc.imread("camera.0.jpg"))
+    while True:
+        try:
+            cam.save_image("camera.0.jpg")
+            #frame = (misc.imread("camera.0.jpg"))
+            break
+        except HTTPError: 
+            print "HTTPError: Trying again."
+        except:
+            print "Unexpected error, trying again."
 
 
 
@@ -99,30 +107,34 @@ if __name__ == "__main__":
     logger = logging.getLogger("facerec")
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
-    ## Define the Fisherfaces as Feature Extraction method:
+    # Define the Fisherfaces as Feature Extraction method:
     #feature = Fisherfaces()
-    ## Define a 1-NN classifier with Euclidean Distance:
-    #classifier = NearestNeighbor(dist_metric=EuclideanDistance(), k=1)
-    ## Define the model as the combination
-    #my_model = PredictableModel(feature=feature, classifier=classifier)
-    ## Compute the Fisherfaces on the given data (in X) and labels (in y):
-    #my_model.compute(X, y)
-    ## We then save the model, which uses Pythons pickle module:
-    #save_model('model.pkl', my_model)
+    feature = PCA()
+    # Define a 1-NN classifier with Euclidean Distance:
+    classifier = NearestNeighbor(dist_metric=EuclideanDistance(), k=1)
+    # Define the model as the combination
+    my_model = PredictableModel(feature=feature, classifier=classifier)
+    # Compute the Fisherfaces on the given data (in X) and labels (in y):
+    my_model.compute(X, y)
+    # We then save the model, which uses Pythons pickle module:
+    save_model('model.pkl', my_model)
     model = load_model('model.pkl')
     # Then turn the first (at most) 16 eigenvectors into grayscale
     # images (note: eigenvectors are stored by column!)
-    #E = []
-    #for i in xrange(min(model.feature.eigenvectors.shape[1], 16)):
-    #    e = model.feature.eigenvectors[:,i].reshape(X[0].shape)
-    #    E.append(minmax_normalize(e,0,255, dtype=np.uint8))
-    ## Plot them and store the plot to "python_fisherfaces_fisherfaces.pdf"
-    #subplot(title="Fisherfaces", images=E, rows=4, cols=4, sptitle="Fisherface", colormap=cm.jet, filename="fisherfaces.png")
-    ## Perform a 10-fold cross validation
-    #cv = KFoldCrossValidation(model, k=10)
-    #cv.validate(X, y)
-    ## And print the result:
-    #cv.print_results()
+    E = []
+    print len(y)
+    print "num eigenvectors: " + str(model.feature.eigenvectors.shape[1])
+    #exit()
+    for i in xrange(min(model.feature.eigenvectors.shape[1], 16)):
+        e = model.feature.eigenvectors[:,i].reshape(X[0].shape)
+        E.append(minmax_normalize(e,0,255, dtype=np.uint8))
+    # Plot them and store the plot to "python_fisherfaces_fisherfaces.pdf"
+    subplot(title="Fisherfaces", images=E, rows=4, cols=4, sptitle="Fisherface", colormap=cm.jet, filename="fisherfaces.png")
+    # Perform a 10-fold cross validation
+    cv = KFoldCrossValidation(model, k=10)
+    cv.validate(X, y)
+    # And print the result:
+    cv.print_results()
 
 
     #Connect to dropcam through 'cam' object
@@ -148,11 +160,14 @@ if __name__ == "__main__":
 
     print "Enter While loop"
     print names
+    print y
+    print "Ready to recognize"
     while True:
-        response = urllib.urlopen(url);
-        data = json.loads(response.read())
+        #response = urllib.urlopen(url);
+        #data = json.loads(response.read())
 
-        if data["result"] != 0:
+        #if data["result"] != 0:
+        if raw_input("Take Picture? [y/n]: ") == 'y':
             ## Take Picture from Dropcam
             take_pic(cam)
 
@@ -191,11 +206,7 @@ if __name__ == "__main__":
             print "Predicted as: " + names[predicted_label]
             print "Classifier output: " + str(classifier_output) 
     
-            #if classifier_output['distances'][0] < 1300:
-            #    os.system("./speech.sh Hello there, " + names[predicted_label])
-            #else:
-            #    os.system("./speech.sh Who are you")
-
+            os.system("./speech.sh Hello there, " + names[predicted_label])
 
 
 
