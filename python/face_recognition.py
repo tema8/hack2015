@@ -113,11 +113,11 @@ if __name__ == "__main__":
     # Define a 1-NN classifier with Euclidean Distance:
     classifier = NearestNeighbor(dist_metric=EuclideanDistance(), k=1)
     # Define the model as the combination
-    my_model = PredictableModel(feature=feature, classifier=classifier)
-    # Compute the Fisherfaces on the given data (in X) and labels (in y):
-    my_model.compute(X, y)
-    # We then save the model, which uses Pythons pickle module:
-    save_model('model.pkl', my_model)
+    #my_model = PredictableModel(feature=feature, classifier=classifier)
+    ## Compute the Fisherfaces on the given data (in X) and labels (in y):
+    #my_model.compute(X, y)
+    ## We then save the model, which uses Pythons pickle module:
+    #save_model('model.pkl', my_model)
     model = load_model('model.pkl')
     # Then turn the first (at most) 16 eigenvectors into grayscale
     # images (note: eigenvectors are stored by column!)
@@ -131,10 +131,10 @@ if __name__ == "__main__":
     # Plot them and store the plot to "python_fisherfaces_fisherfaces.pdf"
     subplot(title="Fisherfaces", images=E, rows=4, cols=4, sptitle="Fisherface", colormap=cm.jet, filename="fisherfaces.png")
     # Perform a 10-fold cross validation
-    cv = KFoldCrossValidation(model, k=10)
-    cv.validate(X, y)
-    # And print the result:
-    cv.print_results()
+    #cv = KFoldCrossValidation(model, k=10)
+    #cv.validate(X, y)
+    ## And print the result:
+    #cv.print_results()
 
 
     #Connect to dropcam through 'cam' object
@@ -208,5 +208,12 @@ if __name__ == "__main__":
     
             os.system("./speech.sh Hello there, " + names[predicted_label])
 
-
+            if names[predicted_label] == "Jason":
+                os.system("firefox -new-tab http://www.pandora.com &")
+                os.system("./speech.sh Starting up your pandora radio, sir")
+            elif names[predicted_label] == "Artem":
+                os.system("firefox -new-tab https://www.youtube.com/embed/7IaYJZ2Usdk?autoplay=1 &")
+                os.system("./speech.sh Starting up your 360-degree video, sir")
+            elif names[predicted_label] == "Zach":
+                pass
 
