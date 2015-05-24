@@ -16,6 +16,9 @@ import matplotlib.pyplot as plt
 from dropcam import Dropcam
 import urllib, json
 
+import threading
+import time
+
 
 import cv2
 # try to import the PIL Image module
@@ -30,6 +33,37 @@ import matplotlib.cm as cm
 from facerec.lbp import LPQ, ExtendedLBP
 
 from dropcam import Dropcam
+
+globalLeanVal = 0
+
+class BackgroundLean(object):
+    """ Threading example class
+
+    The run() method will be started and it will run in the background
+    until the application exits.
+    """
+
+    def __init__(self, interval=1):
+        """ Constructor
+
+        :type interval: int
+        :param interval: Check interval, in seconds
+        """
+        self.interval = interval
+
+        thread = threading.Thread(target=self.run, args=())
+        thread.daemon = True                            # Daemonize thread
+        thread.start()                                  # Start the execution
+
+    def run(self):
+        """ Method that runs forever """
+        while True:
+            direction_url = "https://api.particle.io/v1/devices/53ff6d066667574848382467/lean?access_token=c5b16cf65dd2053b54723a33c59f3521655bf3f8"
+            direction_response = urllib.urlopen(direction_url);
+            direction_data = json.loads(direction_response.read())
+            global globalLeanVal
+            globalLeanVal = direction_data["result"]
+
 
 
 #Takes picture, stores it and displays with the message
@@ -217,20 +251,30 @@ if __name__ == "__main__":
                 os.system("./speech.sh Starting up your 360-degree video, sir")
 
                 os.system("./speech.sh You will be able to move the video by leaning left or right")
-                os.system("xdotool search --onlyvisible --class 'Chrome' windowactivate")
+                os.system("xdotool search 'Google Chrome' | head -1 > chrome_id")
+                f = open("chrome_id","r")
+                chrome_id = f.readline().strip()
+                print chrome_id
+                f.close()
+                #os.system("xdotool search --onlyvisible --class 'Chrome' windowactivate")
+                os.system("xdotool windowactivate " + chrome_id)
+
+                BackgroundLean()
 
                 while True:  ## Not yet sure how to exit out of this loop
-                    direction_url = "https://api.particle.io/v1/devices/53ff6d066667574848382467/lean?access_token=c5b16cf65dd2053b54723a33c59f3521655bf3f8"
-                    direction_response = urllib.urlopen(direction_url);
-                    direction_data = json.loads(direction_response.read())
+                    #direction_url = "https://api.particle.io/v1/devices/53ff6d066667574848382467/lean?access_token=c5b16cf65dd2053b54723a33c59f3521655bf3f8"
+                    #direction_response = urllib.urlopen(direction_url);
+                    #direction_data = json.loads(direction_response.read())
 
-                    if direction_data["result"] > 10:  ## Left
-                        for qqq in range(20):
-                            os.system("xdotool search --onlyvisible --class 'Chrome' windowfocus key 'a'")
-                    elif direction_data["result"] < -10:  ## Right
-                        for qqq in range(20):
-                            os.system("xdotool search --onlyvisible --class 'Chrome' windowfocus key 'd'")
+                    #if direction_data["result"] > 10:  ## Left
+                    if globalLeanVal > 10:  ## Left
+                        os.system("xdotool windowfocus %s key --delay 5 %s &" % (chrome_id, "'a' "*20))
+                        #print "xdotool windowfocus %s key 'a'" % chrome_id
+                    elif globalLeanVal < -10:  ## Right
+                        os.system("xdotool windowfocus %s key --delay 5 %s &" % (chrome_id, "'d' "*20))
+                        #print "xdotool windowfocus %s key 'd'" % chrome_id
 
+                    time.sleep(0.01)
 
 
             elif names[predicted_label] == "Zach":
