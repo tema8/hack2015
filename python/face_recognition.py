@@ -208,12 +208,31 @@ if __name__ == "__main__":
     
             os.system("./speech.sh Hello there, " + names[predicted_label])
 
-            if names[predicted_label] == "Jason":
-                os.system("firefox -new-tab http://www.pandora.com &")
+            if names[predicted_label] == "Artem":
+                os.system("google-chrome http://www.pandora.com &")
                 os.system("./speech.sh Starting up your pandora radio, sir")
-            elif names[predicted_label] == "Artem":
-                os.system("firefox -new-tab https://www.youtube.com/embed/7IaYJZ2Usdk?autoplay=1 &")
+                os.system("xdotool search --onlyvisible --class 'Chrome' windowactivate")
+            elif names[predicted_label] == "Jason":
+                os.system("google-chrome https://www.youtube.com/embed/7IaYJZ2Usdk?autoplay=1 &")
                 os.system("./speech.sh Starting up your 360-degree video, sir")
+
+                os.system("./speech.sh You will be able to move the video by leaning left or right")
+                os.system("xdotool search --onlyvisible --class 'Chrome' windowactivate")
+
+                while True:  ## Not yet sure how to exit out of this loop
+                    direction_url = "https://api.particle.io/v1/devices/53ff6d066667574848382467/lean?access_token=c5b16cf65dd2053b54723a33c59f3521655bf3f8"
+                    direction_response = urllib.urlopen(direction_url);
+                    direction_data = json.loads(direction_response.read())
+
+                    if direction_data["result"] > 10:  ## Left
+                        for qqq in range(20):
+                            os.system("xdotool search --onlyvisible --class 'Chrome' windowfocus key 'a'")
+                    elif direction_data["result"] < -10:  ## Right
+                        for qqq in range(20):
+                            os.system("xdotool search --onlyvisible --class 'Chrome' windowfocus key 'd'")
+
+
+
             elif names[predicted_label] == "Zach":
                 pass
 
